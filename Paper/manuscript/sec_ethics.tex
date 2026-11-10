@@ -1,0 +1,35 @@
+% ------------------------------------------------------------- Ethics
+This work studies how an attacker can disguise interference with a UAV's
+navigation as a benign disturbance. The method is dual-use, so we weighed its
+benefits and harms before running any experiment, following the ethics guidance of the call for
+papers.
+
+\paragraph{Stakeholders and harms.} The stakeholders are UAV operators, people
+and property under flight paths, autopilot maintainers and regulators. The
+potential harm is that an adversary uses the disguise taxonomy, or the
+optimiser, to make a real spoofing attack harder to detect.
+
+\paragraph{Assessment of benefits and risks.}
+\begin{itemize}
+\item \emph{The attack capability is not new.} Detector-agnostic stealthy GPS
+  attacks against UAVs are already published~\cite{khazraei2024}, as are learned
+  spoofers that exploit wind compensation~\cite{kim2024predictable}. Our
+  contribution is the measurement of which disguise defeats which detector,
+  together with a defence that does not depend on detection.
+\item \emph{Each attack family is accompanied by a mitigation.} The mitigations are re-anchoring-interval sizing, detector
+  diversity across disguise classes, and the source-agnostic floor.
+\item \emph{No experiment emitted radio-frequency energy.} All attacks act
+  through simulator interfaces, and the released harness contains no
+  transmit-capable code path.
+\item \emph{No human subjects or personal data are involved.} The third-party
+  corpora are public, are used under their licences, and are not
+  redistributed.
+\end{itemize}
+
+\paragraph{Disclosure.} The reduced-order study uses a generic Kalman filter.
+The PX4 SITL study (\cref{sec:px4}) shows that small disguised GNSS offsets pass
+EKF2's innovation gating and that, without a trusted fix, a slow ramp moves the
+vehicle by the full offset undetected. This follows from tolerating benign GNSS
+error rather than from a software defect, and the mitigation is a trusted
+re-anchoring fix. We will share the results with the PX4 and ArduPilot security
+contacts at least 90 days before publication.

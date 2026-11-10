@@ -1,0 +1,121 @@
+% ------------------------------------------------------------- Scaled test (R1) and revision
+\subsection{RQ5: a scaled attacker study and soundness test}
+\label{sec:scaled}
+The pilot's zero violations rested on five CEM attackers per cell and a
+conservative bound. We therefore strengthened the attacker and the test before
+drawing conclusions, in a scaled attacker study. \nROneAttackers{} further attackers were
+optimised against the full stack: CMA-ES (population \nROneCmaPop,
+\nROneCmaGens{} generations, one restart)~\cite{hansen2016cma}, Bayesian
+optimisation with a tree-structured Parzen estimator (\nROneTrials{}
+trials), and the same TPE with a tail objective (the 90th percentile of the
+undetected deviation instead of its mean). Every candidate was scored on
+\nROneK{} missions with common random numbers, and a sixth \emph{mixed} family
+switches between any two disguises mid-mission. The scaled soundness test
+re-optimised \nROneHeldSeeds{} independent CEM attackers per (family, FPR) cell
+and evaluated each on \nROneEvalN{} fresh missions under three wind
+conditions: \nROneTests{} tests over \nROneUndet{} undetected-attack missions.
+
+\paragraph{Growth of the stealth budget.}
+The pooled budget rose from \nDadvFive{} to \nROneDadvFive\,m at 1\% and 5\% FPR
+(\nROneDadvRatioFive$\times$) and to \nROneDadvTen\,m at 10\%, attained by the
+\nROneDadvArg. Only the tail objective found more than the pilot's CEM: the
+mean-objective CMA-ES and TPE peaked at \nROneSupCma{} and \nROneSupTpe\,m, so an
+attacker that optimises its typical deviation does not set the empirical
+supremum. Even the larger budget was exceeded by a held-out attacker
+in \nROneSupExceed{} of \nROneCells{} cells, by the mixed family up to
+\nROneAdvMax\,m. An empirical supremum is a lower bound on $\dadv$, and further
+search continued to raise it.
+
+\paragraph{Holm-significant violations and their diagnosis.}
+With $\dadv=\nROneDadvFive$\,m, the test flagged \nROneViol{} of \nROneTests{}
+points, all at $m=\nROneViolM$\,m, where the bound claimed $\pbar=0$. We
+re-simulated each flagged cell with its seeds
+(\code{r1\_violation\_diagnosis.csv}). The violations come from
+\nDiagMissions{} missions, and the attacker caused none of them. Each fails
+under its benign inputs alone (benign-only deviation \nDiagBenignMin--\nDiagBenignMax\,m),
+the attack adds at most \nDiagAttackMax\,m, and \nDiagAllSat{} three saturate the
+actuator with or without the attack. Two conditions of \cref{thm:floor} failed,
+neither of which concerns disguise.
+\begin{itemize}
+\item \emph{(C3) for the marginals.} The empirical marginal of each source has
+  finite support. Beyond the largest of \nCalMissions{} calibration samples,
+  $\pbar$ is zero, and the bound claims a certainty that no finite sample can
+  justify. One benign mission in 5{,}000 fails at $m=20$\,m.
+\item \emph{(C1), which was not enforced.} Superposition held in at least
+  \nROneSuperposMin{} of missions, and every violating mission saturated. The
+  pilot had stated (C1) as an assumption, but no component of the stack checked
+  it at run time.
+\end{itemize}
+This is a negative result about the pilot instantiation rather than about
+\cref{thm:floor}. The theorem's conclusion requires its conditions, and the
+scaled test found two that the instantiation did not secure. We report the
+violations as found. The revision below fixes the instantiation before any new
+data are examined and does not tune the old run until it passes.
+
+\subsection{A revised instantiation evaluated on fresh data}
+\label{sec:revised}
+We changed three things, fixed them before generating any new data, and
+evaluated them on a new seed block. A smoke test of the code used a separate
+block, which we did not reuse.
+\begin{enumerate}
+\item \emph{A saturation alarm $D_{\mathrm{sat}}$.} The autopilot raises an alarm
+  at any epoch at which the commanded acceleration reaches its limit. This
+  turns (C1) from an assumption into a run-time check; on the event $U$ the
+  loop never saturated, so \cref{lem:subadd} applies exactly. The alarm costs
+  benign missions \nRevSatAlone{} in false alarms (5\% operating point, envelope
+  wind). The full stack's false-alarm rate rises from \nRevFprStack{} to
+  \nRevFprSat.
+\item \emph{A finite-sample p-box for (C3).} Each marginal tail is replaced by
+  its Clopper--Pearson upper bound, taken simultaneously over the split grid
+  (Bonferroni over $3\times\nRevGrid$ grid points, $\alpha=0.05$), and
+  aggregated by the union bound. With probability at least 0.95 over the
+  calibration samples, $\pbar$ is then a valid upper bound everywhere on the
+  grid. It never reaches zero, and with \nCalMissions{} samples per source it
+  levels off at $1-\nRFiveFloorCpTwenty$.
+\item \emph{Two stealth budgets, tested separately.} The first is the
+  calibration supremum of the scaled attacker study, $\dadv=\nROneDadvFive$\,m.
+  It was not widened to the \nROneAdvMax\,m that the study's held-out
+  attacker reached, because a constant
+  widened after looking at held-out data would make the new test circular. The
+  second is the analytic bound below, which holds for every attack.
+\end{enumerate}
+
+\paragraph{An analytic stealth budget.}
+With noise removed, the linear loop maps the attack offsets to the attack-only
+deviation linearly, so the worst undetected deviation is a linear programme over
+the offsets, constrained by D1, the anchor gate and $D_{\mathrm{sat}}$, with
+benign margins at their $1-\epsilon/3$ calibration quantiles ($\epsilon=0.01$),
+the worst LoE in $[0.7,1]$ and a free onset (\code{r8\_analytic\_bound.csv}).
+\Cref{sec:certbudget} states the attacker class and the result. At $T_a=5$\,s
+the budget is \nREightSatFive\,m (\nBoundTaFive\,m with the finite-sample correction), \nREightSatRatio$\times$ the calibrated $\dadv$
+and \nREightSatRatioAdv$\times$ the largest deviation any optimised attacker
+reached (\nROneAdvMax\,m); the gap measures what D2--D4 contribute beyond
+what has been proved.
+
+\paragraph{Result on fresh seeds.}
+\input{sec_revised_result}
+
+\subsection{RQ6: effect of a measured GNSS marginal}
+\label{sec:r5}
+The pilot's GNSS marginal is simulated (99th percentile \nRFivePnnSim\,m). The
+artifact contains measured navigation error from the real GPS-jamming flight of
+the UAV Attack Dataset~\cite{whelan2020dataset}: \nRFiveSamples{} one-second
+samples over a noise episode and a loss of fix, whose error grows with staleness
+to \nRFiveEnvTen\,m at 10\,s and \nRFiveEnvMax\,m at 15\,s (spoofing samples
+belong to $\dadv$ and are excluded). We replaced each simulated degradation
+episode by the larger of its simulated deviation and the measured envelope at the
+episode's staleness, and in a stress variant set every episode to the measured
+45\,s duration. This never makes a mission's GNSS deviation smaller, but it
+assumes, without measuring it, that navigation error becomes cross-track
+deviation one for one.
+
+At $m=10$\,m and 5\% FPR, with $\dadv=\nROneDadvFive$\,m, the floor estimated from
+the empirical marginals falls from \nRFiveFloorSim{} (simulated GNSS) to
+\nRFiveFloorMeas{} (measured envelope) and \nRFiveFloorLong{} (45\,s episodes).
+With the finite-sample band of \cref{sec:revised}, the values are
+\nRFiveFloorCpSim, \nRFiveFloorCpMeas{} and \nRFiveFloorCpLong. The bound is only
+as good as its GNSS marginal; a simulated marginal overstated the certified
+floor by a factor of two to three at this margin. It is the jamming-induced
+tail, rather than the attack, that the corridor must absorb. At $m=20$\,m every variant
+certifies \nRFiveFloorCpTwenty, the ceiling that \nCalMissions{} calibration
+samples per source permit.
